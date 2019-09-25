@@ -12,6 +12,14 @@
       COMMON /PARA1/ MUL
 	COMMON /NJLMUL/ NJLMUL(MAXR)
       real  efrm
+
+            call system('rm NJLMUL.dat')
+            call system('rm uni_ball_small.dat')
+            call system('touch uni_ball_small.dat')
+            call system('touch NJLMUL.dat')
+      open(unit=32, file='NJLMUL.dat', status='unknown')
+! number of partitions (max=10)
+         write(*,*)"getnjl, events=",ixj										
 ! number of partitions (max=10)
 	npart = 1 
 C      do npara=1, nevent !<----------------------------------------------------- new event
@@ -24,20 +32,28 @@ c          read(17,*) iev, i2, ipart(npara), bim, i5, i6, i7, i8
 c		  read(17,*) nsg(npara) 
 
 c          do i=1, ipart(npara)
+
+            write(32,*)ixj,MUL
+            close(32)
+            write(*,*)"initialization begin:",MUL
+            call system('./NJLballini.sh')
+           write(*,*)"initialization end "
+           open(unit=33, file='uni_ball_small.dat', status='unknown')
+           read(33,*)
            do i=1,mul
-c             read(17,*) id,lstring,lpart,xx,yy,zz,qx,qy,qz,xmass,time 
+             read(33,*) qx,qy,qz,id,xmass,xx,yy,zz,time 
              k=k+1 !k=i
-                 par(1,k,npara)=GX0(I)
-                 par(2,k,npara)=GY0(I)
+                 par(1,k,npara)=xx !GX0(I)
+                 par(2,k,npara)=yy !GY0(I)
 !xj17	         par(3,k,npara)=GZ0(I)
                  dxj = 14.*0.938/EFRM !xj17
-                 par(3,k,npara) = (RANART(NSEED)-0.5)*2.*dxj !xj17
-                 par(4,k,npara)=FT0(I)
-                 par(5,k,npara)=PX0(I)
-                 par(6,k,npara)=PY0(I)
-                 par(7,k,npara)=PZ0(I)
-                 par(8,k,npara)=XMASS0(I)
-                 par(9,k,npara)=float(ITYP0(I))
+                 par(3,k,npara) = zz! (RANART(NSEED)-0.5)*2.*dxj !xj17
+                 par(4,k,npara)=time !FT0(I)
+                 par(5,k,npara)=qx !PX0(I)
+                 par(6,k,npara)=qy !PY0(I)
+                 par(7,k,npara)=qz !PZ0(I)
+                 par(8,k,npara)=XMASS0(I) !xmass !XMASS0(I)
+                 par(9,k,npara)= float(ITYP0(I))!float(id) !float(ITYP0(I))
 
           if(par(9,k,npara).gt.-2.5.and.par(9,k,npara).lt.-1.5)then
            xnum_u_bar=xnum_u_bar+1.
@@ -141,8 +157,8 @@ c      open (unit=14, file='zpc_NJL.dat', status='unknown')
 c	nseed = irun*10+1
 
 	iglobal = 1 !1: global hadronization, 0: local hadronization 
-	thd = 1.6 !2. !time after which hadronization is allowed
-	tend = 2. !8. !end time
+	thd = 14.9 !2. !time after which hadronization is allowed
+	tend = 15. !8. !end time
 
 c	do ixj = 1,1 
 c	write(99,*) ixj
@@ -155,12 +171,12 @@ c	write(*,*) ixj
 
         tau=0.05 ! initial time
 
-        nx=44 
-	ny=50 
-	nz=40 
+        nx=64 
+	ny=60 
+	nz=60 
         dx=5.d-1 !xjdencon: x=-11 ~ 11
 	dy=5.d-1 !xjdencon: y=-12.5 ~ 12.5
-	dz=2.5d-1 !xjdencon: z=-5 ~ 5
+	dz=5.d-1 !xjdencon: z=-5 ~ 5
 	dV=dx*dy*dz*5.07**3.
 
         nxh=int(nx/2.+1.d-8)
@@ -174,9 +190,9 @@ c	write(*,*) ixj
        gs=3.64/xlam**2  
        gg=1.82/xlam**2. ! in Weise's original paper, gg=3.6
        gk=8.9/xlam**5.
-       gv=ratio*gs
+       gv= 0. !ratio*gs
        gis = 1.d-5 !gg !scalar-isovector 
-       giv = 2.*gs !vector-isovector 
+       giv = 0. ! 2.*gs !vector-isovector 
 
 ! this is for vacuum
 	xmu=xm0
